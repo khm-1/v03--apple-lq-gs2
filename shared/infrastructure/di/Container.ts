@@ -10,6 +10,11 @@ import { GetPortfolioUseCase } from '../../application/use-cases/GetPortfolioUse
 import { GetMarketDataUseCase } from '../../application/use-cases/GetMarketDataUseCase';
 import { GetTransactionsUseCase } from '../../application/use-cases/GetTransactionsUseCase';
 import { GetDashboardDataUseCase } from '../../application/use-cases/GetDashboardDataUseCase';
+import { MemoryWatchlistRepository } from '../repositories/MemoryWatchlistRepository';
+import { ManageWatchlistUseCase } from '@shared/application/use-cases/ManageWatchlistUseCase';
+import { IWatchlistRepository } from '../repositories/IWatchlistRepository';
+import { IWatchlistService } from '@shared/domain/services/IWatchlistService';
+import { WatchlistService } from '@shared/domain/services/WatchlistService';
 
 /**
  * Dependency injection container
@@ -65,6 +70,22 @@ export class Container {
       this.get<GetTransactionsUseCase>('GetTransactionsUseCase'),
       this.get<IPortfolioCalculationService>('IPortfolioCalculationService')
     ));
+
+    // ---
+      // Register watchlist repository
+  this.services.set('IWatchlistRepository', new MemoryWatchlistRepository());
+
+  // Register watchlist service
+  this.services.set('IWatchlistService', new WatchlistService());
+
+  // Register watchlist use case
+  this.services.set('ManageWatchlistUseCase', new ManageWatchlistUseCase(
+    this.get<IWatchlistRepository>('IWatchlistRepository'),
+    this.get<IStockRepository>('IStockRepository'),
+    this.get<IWatchlistService>('IWatchlistService')
+  ));
+
+    // ---
   }
 
   // Method to register additional services (useful for testing)

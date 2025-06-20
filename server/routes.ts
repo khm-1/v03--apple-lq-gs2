@@ -5,6 +5,15 @@ import { GetPortfolioUseCase } from "@shared/application/use-cases/GetPortfolioU
 import { GetMarketDataUseCase } from "@shared/application/use-cases/GetMarketDataUseCase";
 import { GetTransactionsUseCase } from "@shared/application/use-cases/GetTransactionsUseCase";
 import { GetDashboardDataUseCase } from "@shared/application/use-cases/GetDashboardDataUseCase";
+import { ManageWatchlistUseCase } from "@shared/application/use-cases/ManageWatchlistUseCase";
+
+// Helper function to safely extract error message
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const container = Container.getInstance();
@@ -95,6 +104,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch dashboard data" });
     }
   });
+  // ---
+
+  // Get user watchlist
+  app.get("/api/watchlist/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId) || userId <= 0) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      const manageWatchlistUseCase = container.get<ManageWatchlistUseCase>('ManageWatchlistUseCase');
+      const watchlist = await manageWatchlistUseCase.getUserWatchlist(userId);
+
+      res.json(watchlist);
+    } catch (error) {
+      console.error('Error fetching watchlist:', error);
+      res.status(500).json({ message: "Failed to fetch watchlist" });
+    }
+  });
+
+  // Add to watchlist
+  app.post("/api/watchlist/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const createDto = req.body;
+
+      if (isNaN(userId) || userId <= 0) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      const manageWatchlistUseCase = container.get<ManageWatchlistUseCase>('ManageWatchlistUseCase');
+      const newItem = await manageWatchlistUseCase.addToWatchlist(userId, createDto);
+
+      res.status(201).json(newItem);
+    } catch (error) {
+      console.error('Error adding to watchlist:', error);
+      res.status(500).json({ message: getErrorMessage(error) || "Failed to add to watchlist" });
+    }
+  });
+
+  // Update watchlist item
+  app.patch("/api/watchlist/:userId/:itemId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const itemId = parseInt(req.params.itemId);
+      const updateDto = req.body;
+
+      if (isNaN(userId) || userId <= 0 || isNaN(itemId) || itemId <= 0) {
+        return res.status(400).json({ message: "Invalid user ID or item ID" });
+      }
+
+      const manageWatchlistUseCase = container.get<ManageWatchlistUseCase>('ManageWatchlistUseCase');
+      const updatedItem = await manageWatchlistUseCase.updateWatchlistItem(userId, itemId, updateDto);
+
+      res.json(updatedItem);
+    } catch (error) {
+      console.error('Error updating watchlist item:', error);
+      res.status(500).json({ message: getErrorMessage(error) || "Failed to update watchlist item" });
+    }
+  });
+
+  // Remove from watchlist
+  app.delete("/api/watchlist/:userId/:itemId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const itemId = parseInt(req.params.itemId);
+
+      if (isNaN(userId) || userId <= 0 || isNaN(itemId) || itemId <= 0) {
+        return res.status(400).json({ message: "Invalid user ID or item ID" });
+      }
+
+      const manageWatchlistUseCase = container.get<ManageWatchlistUseCase>('ManageWatchlistUseCase');
+      await manageWatchlistUseCase.removeFromWatchlist(userId, itemId);
+
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error removing from watchlist:', error);
+      res.status(500).json({ message: getErrorMessage(error) || "Failed to remove from watchlist" });
+    }
+  });
+  // ---
 
   const httpServer = createServer(app);
   return httpServer;

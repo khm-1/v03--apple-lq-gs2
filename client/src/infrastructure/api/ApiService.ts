@@ -1,9 +1,10 @@
+import { CreateWatchlistItemDto, UpdateWatchlistItemDto, WatchlistItemDto, WatchlistWithStocksDto } from '@shared/application/dto/WatchlistDto';
 import { IApiService } from './IApiService';
-import { 
-  PortfolioDto, 
-  StockDto, 
-  TransactionDto, 
-  DashboardDataDto 
+import {
+  PortfolioDto,
+  StockDto,
+  TransactionDto,
+  DashboardDataDto
 } from '@shared/application/dto/PortfolioDto';
 
 /**
@@ -15,6 +16,34 @@ export class ApiService implements IApiService {
   constructor(baseUrl: string = '') {
     this.baseUrl = baseUrl;
   }
+
+  async getWatchlist(userId: number): Promise<WatchlistWithStocksDto> {
+    const response = await this.fetch(`/api/watchlist/${userId}`);
+    return response.json();
+  }
+
+  async addToWatchlist(userId: number, item: CreateWatchlistItemDto): Promise<WatchlistItemDto> {
+    const response = await this.fetch(`/api/watchlist/${userId}`, {
+      method: 'POST',
+      body: JSON.stringify(item),
+    });
+    return response.json();
+  }
+
+  async updateWatchlistItem(userId: number, itemId: number, updates: UpdateWatchlistItemDto): Promise<WatchlistItemDto> {
+    const response = await this.fetch(`/api/watchlist/${userId}/${itemId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
+    return response.json();
+  }
+
+  async removeFromWatchlist(userId: number, itemId: number): Promise<void> {
+    await this.fetch(`/api/watchlist/${userId}/${itemId}`, {
+      method: 'DELETE',
+    });
+  }
+
 
   async getPortfolio(userId: number): Promise<PortfolioDto> {
     const response = await this.fetch(`/api/portfolio/${userId}`);
@@ -43,7 +72,7 @@ export class ApiService implements IApiService {
 
   private async fetch(url: string, options?: RequestInit): Promise<Response> {
     const fullUrl = `${this.baseUrl}${url}`;
-    
+
     const response = await fetch(fullUrl, {
       ...options,
       headers: {
