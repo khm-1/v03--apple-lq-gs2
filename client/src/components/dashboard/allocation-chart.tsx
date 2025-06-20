@@ -1,8 +1,12 @@
 import { PieChart, Pie, ResponsiveContainer, Cell, Tooltip } from "recharts";
 import GlassPanel from "./glass-panel";
-import { mockAllocationData } from "@/lib/mock-data";
+import type { AllocationDto } from "@shared/application/dto/PortfolioDto";
 
-export default function AllocationChart() {
+interface AllocationChartProps {
+  allocation: AllocationDto[];
+}
+
+export default function AllocationChart({ allocation }: AllocationChartProps) {
   return (
     <GlassPanel>
       <h3 className="text-xl font-semibold text-white mb-6">Portfolio Allocation</h3>
@@ -10,7 +14,7 @@ export default function AllocationChart() {
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={mockAllocationData}
+              data={allocation}
               cx="50%"
               cy="50%"
               innerRadius={60}
@@ -18,7 +22,7 @@ export default function AllocationChart() {
               paddingAngle={2}
               dataKey="value"
             >
-              {mockAllocationData.map((entry, index) => (
+              {allocation.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
@@ -35,7 +39,7 @@ export default function AllocationChart() {
         </ResponsiveContainer>
       </div>
       <div className="space-y-3">
-        {mockAllocationData.map((item, index) => (
+        {allocation.map((item, index) => (
           <div key={index} className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />

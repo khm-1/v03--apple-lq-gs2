@@ -1,9 +1,19 @@
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import GlassPanel from "./glass-panel";
-import { mockPortfolioData } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
+import type { PerformanceDataDto } from "@shared/application/dto/PortfolioDto";
 
-export default function PortfolioChart() {
+interface PortfolioChartProps {
+  performanceData?: PerformanceDataDto[];
+}
+
+export default function PortfolioChart({ performanceData }: PortfolioChartProps) {
+  // Generate mock data if none provided
+  const chartData = performanceData?.map(data => ({
+    date: new Date(data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    value: data.value,
+    pnl: data.pnl
+  })) || generateMockData();
   return (
     <GlassPanel>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
@@ -28,14 +38,14 @@ export default function PortfolioChart() {
       </div>
       <div className="h-64 md:h-80">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={mockPortfolioData}>
-            <XAxis 
-              dataKey="month" 
+          <LineChart data={chartData}>
+            <XAxis
+              dataKey="date"
               tick={{ fill: 'rgba(226, 232, 240, 0.7)', fontSize: 12 }}
               axisLine={{ stroke: 'rgba(255, 255, 255, 0.1)' }}
               tickLine={{ stroke: 'rgba(255, 255, 255, 0.1)' }}
             />
-            <YAxis 
+            <YAxis
               tick={{ fill: 'rgba(226, 232, 240, 0.7)', fontSize: 12 }}
               axisLine={{ stroke: 'rgba(255, 255, 255, 0.1)' }}
               tickLine={{ stroke: 'rgba(255, 255, 255, 0.1)' }}
@@ -63,4 +73,25 @@ export default function PortfolioChart() {
       </div>
     </GlassPanel>
   );
+}
+
+function generateMockData() {
+  const data = [];
+  const baseValue = 1000000;
+  const now = new Date();
+
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const randomFactor = 0.97 + (Math.random() * 0.06);
+    const trendFactor = 1 + (29 - i) * 0.001;
+    const value = baseValue * randomFactor * trendFactor;
+
+    data.push({
+      date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      value: Math.round(value),
+      pnl: Math.round(value - baseValue)
+    });
+  }
+
+  return data;
 }

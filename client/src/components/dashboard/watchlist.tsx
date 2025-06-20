@@ -2,22 +2,13 @@ import GlassPanel from "./glass-panel";
 import { Search, Plus, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { Stock } from "@shared/schema";
+import type { StockDisplayData } from "@/presentation/view-models/PortfolioViewModel";
 
 interface WatchlistProps {
-  stocks: Stock[];
+  stocks: StockDisplayData[];
 }
 
 export default function Watchlist({ stocks }: WatchlistProps) {
-  const getGradientColor = (symbol: string) => {
-    const gradients = {
-      'AAPL': 'from-blue-500 to-blue-600',
-      'MSFT': 'from-purple-500 to-purple-600',
-      'TSLA': 'from-green-500 to-emerald-600',
-      'AMZN': 'from-yellow-500 to-orange-500',
-    };
-    return gradients[symbol as keyof typeof gradients] || 'from-gray-500 to-gray-600';
-  };
 
   return (
     <GlassPanel>
@@ -55,11 +46,10 @@ export default function Watchlist({ stocks }: WatchlistProps) {
           </div>
           
           {stocks.map((stock) => {
-            const isPositive = parseFloat(stock.changePercent) >= 0;
             return (
               <div key={stock.symbol} className="grid grid-cols-6 gap-4 py-4 border-b border-white/5 hover:bg-white/5 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${getGradientColor(stock.symbol)} flex items-center justify-center text-white text-xs font-bold`}>
+                  <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${stock.gradientColor} flex items-center justify-center text-white text-xs font-bold`}>
                     {stock.symbol.charAt(0)}
                   </div>
                   <div>
@@ -67,14 +57,14 @@ export default function Watchlist({ stocks }: WatchlistProps) {
                     <div className="text-slate-400 text-xs">{stock.name}</div>
                   </div>
                 </div>
-                <div className="text-white font-semibold">${stock.price}</div>
+                <div className="text-white font-semibold">{stock.price}</div>
                 <div className="flex items-center gap-1">
-                  {isPositive ? <TrendingUp className="w-3 h-3 text-green-400" /> : <TrendingDown className="w-3 h-3 text-red-400" />}
-                  <span className={`font-medium ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                    {isPositive ? '+' : ''}{stock.changePercent}%
+                  {stock.isPositive ? <TrendingUp className="w-3 h-3 text-green-400" /> : <TrendingDown className="w-3 h-3 text-red-400" />}
+                  <span className={`font-medium ${stock.isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                    {stock.isPositive ? '+' : ''}{stock.changePercent}
                   </span>
                 </div>
-                <div className="text-slate-300">{(stock.volume / 1000000).toFixed(1)}M</div>
+                <div className="text-slate-300">{stock.volumeDisplay}</div>
                 <div className="text-slate-300">{stock.marketCap}</div>
                 <div>
                   <Button
