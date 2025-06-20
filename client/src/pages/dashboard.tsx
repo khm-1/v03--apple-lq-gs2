@@ -8,17 +8,18 @@ import RecentTransactions from "@/components/dashboard/recent-transactions";
 import Watchlist from "@/components/dashboard/watchlist";
 import QuickActions from "@/components/dashboard/quick-actions";
 import { Wallet, TrendingUp, Target, Activity } from "lucide-react";
+import type { Portfolio, Stock, Transaction } from "@shared/schema";
 
 export default function Dashboard() {
-  const { data: portfolio } = useQuery({
+  const { data: portfolio } = useQuery<Portfolio>({
     queryKey: ["/api/portfolio/1"],
   });
 
-  const { data: stocks } = useQuery({
+  const { data: stocks } = useQuery<Stock[]>({
     queryKey: ["/api/stocks"],
   });
 
-  const { data: transactions } = useQuery({
+  const { data: transactions } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions/1"],
   });
 
