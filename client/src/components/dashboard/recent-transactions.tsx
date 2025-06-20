@@ -1,10 +1,10 @@
 import GlassPanel from "./glass-panel";
 import { ArrowUp, ArrowDown, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Transaction } from "@shared/schema";
+import type { TransactionDisplayData } from "@/presentation/view-models/PortfolioViewModel";
 
 interface RecentTransactionsProps {
-  transactions: Transaction[];
+  transactions: TransactionDisplayData[];
 }
 
 export default function RecentTransactions({ transactions }: RecentTransactionsProps) {
@@ -21,47 +21,7 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
     }
   };
 
-  const getTransactionColor = (type: string) => {
-    switch (type) {
-      case 'buy':
-        return 'bg-green-500/20';
-      case 'sell':
-        return 'bg-red-500/20';
-      case 'dividend':
-        return 'bg-blue-500/20';
-      default:
-        return 'bg-green-500/20';
-    }
-  };
 
-  const formatTimeAgo = (timestamp: Date | string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-    
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes} minutes ago`;
-    } else if (diffInMinutes < 1440) {
-      const hours = Math.floor(diffInMinutes / 60);
-      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-    } else {
-      const days = Math.floor(diffInMinutes / 1440);
-      return `${days} day${days > 1 ? 's' : ''} ago`;
-    }
-  };
-
-  const formatTransactionTitle = (transaction: Transaction) => {
-    switch (transaction.type) {
-      case 'buy':
-        return `Buy ${transaction.symbol}`;
-      case 'sell':
-        return `Sell ${transaction.symbol}`;
-      case 'dividend':
-        return `Dividend ${transaction.symbol}`;
-      default:
-        return `${transaction.type} ${transaction.symbol}`;
-    }
-  };
 
   return (
     <GlassPanel>
@@ -72,28 +32,28 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
         </Button>
       </div>
       <div className="space-y-4">
-        {transactions.slice(0, 3).map((transaction) => (
+        {transactions.map((transaction) => (
           <div key={transaction.id} className="glass-morphism-dark rounded-xl p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-full ${getTransactionColor(transaction.type)} flex items-center justify-center`}>
+                <div className={`w-8 h-8 rounded-full ${transaction.backgroundColorClass} flex items-center justify-center`}>
                   {getTransactionIcon(transaction.type)}
                 </div>
                 <div>
                   <div className="text-white font-medium text-sm">
-                    {formatTransactionTitle(transaction)}
+                    {transaction.title}
                   </div>
                   <div className="text-slate-400 text-xs">
-                    {formatTimeAgo(transaction.timestamp!)}
+                    {transaction.timeAgo}
                   </div>
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-white font-semibold text-sm">
-                  {parseFloat(transaction.amount) >= 0 ? '+' : ''}${Math.abs(parseFloat(transaction.amount)).toLocaleString()}
+                  {transaction.isPositive ? '+' : ''}{transaction.amount}
                 </div>
                 {transaction.shares && (
-                  <div className={`text-xs ${parseFloat(transaction.amount) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  <div className={`text-xs ${transaction.isPositive ? 'text-green-400' : 'text-red-400'}`}>
                     {transaction.shares > 0 ? '+' : ''}{transaction.shares} shares
                   </div>
                 )}
